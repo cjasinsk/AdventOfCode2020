@@ -11,7 +11,6 @@ namespace AdventOfCode
     {
 
         //--------------------------------------------------
-        [NotNull]
         public static Day Run([NotNull] IEnumerable<string> input)
         {
             var parsed = Day1.ParseInput(input);

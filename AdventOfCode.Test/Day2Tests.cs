@@ -8,12 +8,13 @@ namespace AdventOfCode.Test
 
         [Test]
         public static void Day2Test()
-        {
-            var day2 = Day2.Run("../../../Input/Day2.txt".ReadAllLines());
-            Assert.AreEqual("--- Day 2: Password Philosophy ---", day2.Title);
-            Assert.AreEqual("2", day2.PartA);
-            Assert.AreEqual("1", day2.PartB);
-        } 
+            => Assert.AreEqual(
+                new Day(
+                    title: "--- Day 2: Password Philosophy ---",
+                    partA: "2",
+                    partB: "1"),
+                Day2.Run("../../../Input/Day2.txt".ReadAllLines()));
+
     }
     
 }

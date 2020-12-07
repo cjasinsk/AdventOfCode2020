@@ -20,6 +20,7 @@ namespace AdventOfCode
             {
                 1 => Day1.Run("Input/Day1.txt".ReadAllLines()),
                 2 => Day2.Run("Input/Day2.txt".ReadAllLines()),
+                3 => Day3.Run("Input/Day3.txt".ReadAllLines()),
                 _ => throw new InvalidOperationException($"Currently there is no solution for Day {day}.")
             };
 
