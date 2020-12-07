@@ -19,6 +19,7 @@ namespace AdventOfCode
             var result = day switch
             {
                 1 => Day1.Run("Input/Day1.txt".ReadAllLines()),
+                2 => Day2.Run("Input/Day2.txt".ReadAllLines()),
                 _ => throw new InvalidOperationException($"Currently there is no solution for Day {day}.")
             };
 
