@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using JetBrains.Annotations;
 
@@ -49,6 +50,20 @@ namespace AdventOfCode.Common
         /// <inheritdoc />
         public override string ToString()
             => this.Value.ToString();
+        
+        
+        //--------------------------------------------------
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+            => !object.ReferenceEquals(obj, null)
+                && (object.ReferenceEquals(this, obj)
+                    || (obj is Success<TValue> success && this.Value.Equals(success.Value)));
+
+        
+        //--------------------------------------------------
+        /// <inheritdoc />
+        public override int GetHashCode()
+            => EqualityComparer<TValue>.Default.GetHashCode(this.Value);
         
     }
     

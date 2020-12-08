@@ -1,4 +1,6 @@
-﻿using AdventOfCode.Common;
+﻿using System.Threading.Tasks;
+
+using AdventOfCode.Common;
 
 using NUnit.Framework;
 
@@ -9,13 +11,10 @@ namespace AdventOfCode.Test
     {
 
         [Test]
-        public static void Day1Test()
+        public static async Task Day1Test()
             => Assert.AreEqual(
-                new Day(
-                    title: "--- Day 1: Report Repair ---",
-                    partA: "514579",
-                    partB: "241861950"),
-                Day1.Run("../../../Input/Day1.txt".ReadAllLines()));
+                new Day("--- Day 1: Report Repair ---", "514579", "241861950"),
+                await Day1.Run(await "..\\..\\..\\Input\\Day1.txt".ReadAllLines()));
 
     }
     

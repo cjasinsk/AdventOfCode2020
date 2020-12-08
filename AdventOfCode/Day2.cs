@@ -16,9 +16,9 @@ namespace AdventOfCode
             var parsed = Day2.ParseInput(input);
             
             return new Day(
-                title: "--- Day 2: Password Philosophy ---",
-                partA: Day2.RunPartA(parsed).ToString(),
-                partB: Day2.RunPartB(parsed).ToString());
+                "--- Day 2: Password Philosophy ---",
+                Day2.RunPartA(parsed).ToString(),
+                Day2.RunPartB(parsed).ToString());
         }
 
 
@@ -37,7 +37,7 @@ namespace AdventOfCode
             {
                 // [0]:"1-3 a:", [1]:"abcde"
                 var split = x.Split(new[] {": "}, StringSplitOptions.None);
-
+                
                 // [0]:"1-3", [1]:"a"
                 var policyStr = split[0].Split(new[] {" "}, StringSplitOptions.None);
 

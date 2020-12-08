@@ -9,29 +9,39 @@ namespace AdventOfCode
     
     internal static class Program
     {
-        
+     
+        //--------------------------------------------------
         public static void Main([NotNull] string[] args)
         {
-            if (args is null) { throw new ArgumentNullException(nameof(args)); }
-            if (args.Length != 1) { throw new ArgumentException("Expecting a parameter for the day; 1-25.", nameof(args)); }
-
-            if (!int.TryParse(args[0], out var day)) { throw new ArgumentException("Expecting the first parameter to be a number.", nameof(args)); }
-            if (day < 1 || day > 25) { throw new ArgumentException("The day must be between 1 and 25.", nameof(args)); }
-
-            var result = day switch
+            var output = Program.Run(args) switch
             {
-                1 => Day1.Run("Input/Day1.txt".ReadAllLines()),
-                2 => Day2.Run("Input/Day2.txt".ReadAllLines()),
-                3 => Day3.Run("Input/Day3.txt".ReadAllLines()),
-                4 => Day4.Run("Input/Day4.txt".ReadAllLines()),
-                _ => throw new InvalidOperationException($"Currently there is no solution for Day {day}.")
+                Success<Day> success => success.ToString(),
+                Failure<Day> failure => new Error("AdventOfCode", "An error occurred")[failure.Error].ToString(),
+                _ => throw new InvalidOperationException()
             };
-
-            Console.WriteLine(result.Title);
-            Console.WriteLine($"PartA:\t{result.PartA}");
-            Console.WriteLine($"PartB:\t{result.PartB}");
+            
+            Console.WriteLine(output);
         }
-        
+
+
+        //--------------------------------------------------
+        private static async Result<Day> Run([NotNull] string[] args)
+        {
+            if (args is null) { throw new ArgumentNullException(nameof(args)); }
+
+            await args.Validate("Args", (x => x.Length != 1, "Expecting at least 1 argument for the day; 1-25."));
+            await args.Validate("Args", (x => !int.TryParse(x[0], out var d) || (d < 1 || d > 25), "Expecting the first argument to be a number between 1 and 25."));
+
+            var day = int.Parse(args[0]);
+            return await (day switch
+            {
+                1 => Day1.Run(await $"Input\\Day{day}.txt".ReadAllLines()),
+                2 => Day2.Run(await $"Input\\Day{day}.txt".ReadAllLines()),
+                3 => Day3.Run(await $"Input\\Day{day}.txt".ReadAllLines()),
+                4 => Day4.Run(await $"Input\\Day{day}.txt".ReadAllLines()),
+                _ => throw new Error($"Day {day}", $"Currently there is no solution for Day {day}.")
+            });
+        }
     }
     
 }

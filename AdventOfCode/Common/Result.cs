@@ -18,6 +18,31 @@ namespace AdventOfCode.Common
         
         //--------------------------------------------------
         /// <summary>
+        /// Deconstruct the result into a possible value, and
+        /// a possible error.
+        /// </summary>
+        public void Deconstruct(out TValue value, out Error error)
+        {
+            switch (this)
+            {
+                case Success<TValue> s:
+                    value = s.Value;
+                    error = default;
+                    return;
+                case Failure<TValue> f:
+                    value = default;
+                    error = f.Error;
+                    return;
+                default:
+                    value = default;
+                    error = default;
+                    return;
+            }
+        }
+        
+        
+        //--------------------------------------------------
+        /// <summary>
         /// Convert from a value to a successful result.
         /// </summary>
         [NotNull]

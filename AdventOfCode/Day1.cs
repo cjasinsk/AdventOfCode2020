@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using AdventOfCode.Common;
+
 using JetBrains.Annotations;
 
 namespace AdventOfCode
@@ -11,14 +13,15 @@ namespace AdventOfCode
     {
 
         //--------------------------------------------------
-        public static Day Run([NotNull] IEnumerable<string> input)
+        public static async Result<Day> Run([NotNull] IEnumerable<string> input)
         {
-            var parsed = Day1.ParseInput(input);
+            var parsed = await Day1.ParseInput(input);
 
             return new Day(
-                title: "--- Day 1: Report Repair ---",
-                partA: Day1.RunPartA(parsed).ToString(),
-                partB: Day1.RunPartB(parsed).ToString());
+                "--- Day 1: Report Repair ---",
+                await Validate.All("Day 1", "Parts error",
+                    Day1.RunPartA(parsed),
+                    Day1.RunPartB(parsed)));
         }
 
 
@@ -27,14 +30,14 @@ namespace AdventOfCode
         /// Convert input strings to decimal
         /// </summary>
         [NotNull] 
-        private static decimal[] ParseInput([NotNull] IEnumerable<string> input)
+        private static Result<decimal[]> ParseInput([NotNull] IEnumerable<string> input)
         {
             if (input is null) { throw new ArgumentNullException(nameof(input)); }
-            return input.Select(x =>
-            {
-                if (!decimal.TryParse(x, out var i)) { throw new InvalidOperationException($"Unable to parse {x} into a number."); }
-                return i;
-            }).ToArray();
+
+            return input.Select((x, i) => !decimal.TryParse(x, out var value)
+                    ? new Error(i.ToString(), $"Unable to parse {x} into a number", x)
+                    : value.Success())
+                .Flatten("Day 1", "Unable to parse input into numbers.");
         }
 
 
@@ -43,10 +46,11 @@ namespace AdventOfCode
         /// Find 2 numbers that add to 2020, then multiply
         /// them together.
         /// </summary>
-        private static decimal RunPartA([NotNull] decimal[] input)
+        [NotNull]
+        private static Result<string> RunPartA([NotNull] decimal[] input)
         {
             if (input is null) { throw new ArgumentNullException(nameof(input)); }
-            if (input.Length < 2) { throw new ArgumentException("Expecting at least 2 numbers of input."); }
+            if (input.Length < 2) { return new Error("PartA", "Expecting at least 2 numbers of input.", input); }
             
             foreach (var x in input)
             {
@@ -54,11 +58,11 @@ namespace AdventOfCode
                 {
                     if (x + y == 2020)
                     {
-                        return x * y;
+                        return (x * y).ToString();
                     }
                 }
             }
-            throw new InvalidOperationException("No two numbers add to 2020.");
+            return new Error("PartA", "No two numbers add to 2020.", input);
         }
         
         
@@ -67,10 +71,11 @@ namespace AdventOfCode
         /// Find 3 numbers that add to 2020, then multiply
         /// them together.
         /// </summary>
-        private static decimal RunPartB([NotNull] decimal[] input)
+        [NotNull]
+        private static Result<string> RunPartB([NotNull] decimal[] input)
         {
             if (input is null) { throw new ArgumentNullException(nameof(input)); }
-            if (input.Length < 3) { throw new ArgumentException("Expecting at least 3 numbers of input."); }
+            if (input.Length < 3) { return new Error("PartB", "Expecting at least 3 numbers of input.", input); }
             
             foreach (var x in input)
             {
@@ -80,12 +85,12 @@ namespace AdventOfCode
                     {
                         if (x + y + z == 2020)
                         {
-                            return x * y * z;
+                            return (x * y * z).ToString();
                         }
                     }
                 }
             }
-            throw new InvalidOperationException("No three numbers add to 2020.");
+            return new Error("PartB", "No three numbers add to 2020.", input);
         }
         
     }

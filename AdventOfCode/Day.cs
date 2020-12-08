@@ -16,6 +16,17 @@ namespace AdventOfCode
             this.PartB = partB ?? throw new ArgumentNullException(nameof(partB));
         }
 
+        
+        //--------------------------------------------------
+        public Day([NotNull] string title, (string A, string B) part)
+        {
+            this.Title = title ?? throw new ArgumentNullException(nameof(title));
+            this.PartA = part.A ?? throw new ArgumentNullException(nameof(part.A));
+            this.PartB = part.B ?? throw new ArgumentNullException(nameof(part.B));
+        }
+        
+        
+        //--------------------------------------------------
         [NotNull] public readonly string PartA;
         [NotNull] public readonly string PartB;
         [NotNull] public readonly string Title;
@@ -55,6 +66,11 @@ namespace AdventOfCode
             }
         }
 
+        
+        //--------------------------------------------------
+        public override string ToString()
+            => $"{this.Title}\nPartA: {this.PartA}\nPartB: {this.PartB}";
+        
     }
 
 }

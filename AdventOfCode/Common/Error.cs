@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 using JetBrains.Annotations;
 
@@ -22,28 +20,41 @@ namespace AdventOfCode.Common
         /// <summary>
         /// Construct a new Error.
         /// </summary>
-        /// <param name="message">The error message</param>
         /// <param name="id">The id of the error</param>
+        /// <param name="message">The error message</param>
+        /// <param name="value">The value that caused the error</param>
         /// <param name="nested">Any additional nested errors</param>
-        /// <param name="originFilePath">If left unset, the compiler fills this in with where this constructor was called</param>
-        /// <param name="originLineNumber">If left unset, the compiler fills this in with where this constructor was called</param>
-        /// <param name="originMemberName">If left unset, the compiler fills this in with where this constructor was called</param>
         public Error(
+            [NotNull] string id,
             [NotNull] string message,
-            [CanBeNull] string id = null,
-            [CanBeNull] Error[] nested = null,
-            [CallerFilePath, NotNull] string originFilePath = "",
-            [CallerLineNumber] int originLineNumber = 0,
-            [CallerMemberName, NotNull] string originMemberName = "")
-            : base(Error.ToExceptionString(originFilePath, originLineNumber, id, message, nested ?? new Error[0]))
+            [CanBeNull] object value = null,
+            [CanBeNull] Error[] nested = null)
         {
-            this.Id = id;
-            this.Message = message ?? throw new ArgumentNullException(nameof(message));
+            this.Id = id ?? throw new ArgumentNullException(nameof(id));
+            this.Messages = new [] { message ?? throw new ArgumentNullException(nameof(message)) };
             this.Nested = nested ?? new Error[0];
-            
-            // ReSharper disable ExplicitCallerInfoArgument
-            this.Origin = new CallerInfo(originFilePath, originLineNumber, originMemberName);
-            // ReSharper restore ExplicitCallerInfoArgument
+            this.Value = value;
+        }
+        
+        
+        //--------------------------------------------------
+        /// <summary>
+        /// Construct a new Error.
+        /// </summary>
+        /// <param name="id">The id of the error</param>
+        /// <param name="messages">The error messages</param>
+        /// <param name="value">The value that caused the error</param>
+        /// <param name="nested">Any additional nested errors</param>
+        public Error(
+            [NotNull] string id,
+            [NotNull] string[] messages,
+            [CanBeNull] object value = null,
+            [CanBeNull] Error[] nested = null)
+        {
+            this.Id = id ?? throw new ArgumentNullException(nameof(id));
+            this.Messages = messages ?? throw new ArgumentNullException(nameof(messages));
+            this.Nested = nested ?? new Error[0];
+            this.Value = value;
         }
         
         
@@ -52,30 +63,77 @@ namespace AdventOfCode.Common
         /// Nest errors into this error.
         /// </summary>
         [NotNull]
-        public Error this[[NotNull] params Error[] nested] =>
-            new Error(
-                this.Message,
+        public Error this[[NotNull, ItemCanBeNull] params Error[] nested]
+            => new Error(
                 this.Id,
-                this.Nested.Concat(nested ?? throw new ArgumentNullException(nameof(nested))).ToArray(),
-                // ReSharper disable ExplicitCallerInfoArgument
-                this.Origin.FilePath,
-                this.Origin.LineNumber,
-                this.Origin.MemberName);
-                // ReSharper restore ExplicitCallerInfoArgument
+                this.Messages,
+                this.Value,
+                this.Nested
+                    .Concat(nested ?? throw new ArgumentNullException(nameof(nested)))
+                    .Where(x => !(x is null))
+                    .ToArray());
+
+        
+        
+        //--------------------------------------------------
+        /// <summary>
+        /// Add messages into this error.
+        /// </summary>
+        [NotNull]
+        public Error this[[NotNull, ItemCanBeNull] params string[] messages]
+            => new Error(
+                this.Id,
+                this.Messages
+                    .Concat(messages)
+                    .Where(x => !(x is null))
+                    .ToArray(),
+                this.Value,
+                this.Nested);
+
+        
+        //--------------------------------------------------
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+            => !object.ReferenceEquals(obj, null)
+                && (object.ReferenceEquals(this, obj)
+                    || (obj is Error error && this.ToString().Equals(error.ToString())));
+        
+
+        //--------------------------------------------------
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = this.Id.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.Messages.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.Nested.GetHashCode();
+                hashCode = (hashCode * 397) ^ (this.Value != null ? this.Value.GetHashCode() : 0);
+                return hashCode;
+            }
+        }
 
 
         //--------------------------------------------------
         /// <summary>
         /// The Id of the error.
         /// </summary>
-        [CanBeNull] public readonly string Id;
+        [NotNull] public readonly string Id;
+        
+
+        //--------------------------------------------------
+        /// <summary>
+        /// The error messages.
+        /// </summary>
+        [NotNull]
+        public override string Message => this.ToString();
         
         
         //--------------------------------------------------
         /// <summary>
-        /// The error message.
+        /// The error messages.
         /// </summary>
-        [NotNull] public new readonly string Message;
+        [NotNull] public readonly string[] Messages;
         
         
         //--------------------------------------------------
@@ -83,20 +141,20 @@ namespace AdventOfCode.Common
         /// Additional nested errors.
         /// </summary>
         [NotNull] public readonly Error[] Nested;
-
-        
-        //--------------------------------------------------
-        /// <summary>
-        /// The origin where the error was created.
-        /// </summary>
-        public readonly CallerInfo Origin;
         
         
         //--------------------------------------------------
         /// <inheritdoc />
         public override string ToString()
-            => Error.ToString(this.Id, this.Message, this.Nested, 0);
+            => Error.ToString(this.Id, this.Messages, this.Nested);
 
+        
+        //--------------------------------------------------
+        /// <summary>
+        /// The value that caused the error.
+        /// </summary>
+        [CanBeNull] public readonly object Value;
+        
         
         
         /**************************************************
@@ -105,28 +163,26 @@ namespace AdventOfCode.Common
         
         //--------------------------------------------------
         /// <summary>
-        /// Convert the error to a string, with indentation.
+        /// Convert the error to a string.
         /// </summary>
         [NotNull]
-        private static string ToString([CanBeNull] string id, [NotNull] string message, [NotNull] IReadOnlyCollection<Error> nested, int indent)
+        private static string ToString([NotNull] string id, [NotNull] string[] messages, [NotNull] Error[] nested)
         {
-            var str = $"{"".PadLeft(indent)}{(id is null ? message : $"[{id}]: {message}")}";
-            return nested.Count > 0
-                ? $"{str}\n{string.Join("\n", nested.Select(err => Error.ToString(err.Id, err.Message, err.Nested, indent + 2)))}"
-                : str;
-        }
+            static string InnerToString(string id, string[] messages, Error[] nested, int indent)
+            {
+                var str = $"{"".PadLeft(indent)}[{id}]: ";
+                for (var i = 0; i < messages.Length; i += 1)
+                {
+                    str += i == 0
+                        ? messages[i]
+                        : $"\n{string.Empty.PadLeft(indent + 2)}{messages[i]}";
+                }
+                return nested.Length > 0
+                    ? $"{str}\n{string.Join("\n", nested.Select(err => InnerToString(err.Id, err.Messages, err.Nested, indent + 2)))}"
+                    : str;
+            }
 
-        
-        //--------------------------------------------------
-        /// <summary>
-        /// Convert the error to a string representation useful
-        /// when used as an exception.
-        /// </summary>
-        [NotNull]
-        private static string ToExceptionString([NotNull] string filePath, int lineNumber, [CanBeNull] string id, [NotNull] string message, [NotNull] Error[] nested)
-        {
-            var str = $"An Error was thrown as an exception\n  on {filePath}:line {lineNumber}\n";
-            return str + Error.ToString(id, message, nested, 2);
+            return InnerToString(id, messages, nested, 0);
         }
         
     }
