@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿using AdventOfCode.Common;
+
+using NUnit.Framework;
 
 namespace AdventOfCode.Test
 {

@@ -1,5 +1,7 @@
 ﻿using System;
 
+using AdventOfCode.Common;
+
 using JetBrains.Annotations;
 
 namespace AdventOfCode
@@ -21,6 +23,7 @@ namespace AdventOfCode
                 1 => Day1.Run("Input/Day1.txt".ReadAllLines()),
                 2 => Day2.Run("Input/Day2.txt".ReadAllLines()),
                 3 => Day3.Run("Input/Day3.txt".ReadAllLines()),
+                4 => Day4.Run("Input/Day4.txt".ReadAllLines()),
                 _ => throw new InvalidOperationException($"Currently there is no solution for Day {day}.")
             };
 
