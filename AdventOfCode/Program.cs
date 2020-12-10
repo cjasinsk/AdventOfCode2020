@@ -40,6 +40,7 @@ namespace AdventOfCode
                     3 => Day3.Run(input),
                     4 => Day4.Run(input),
                     5 => Day5.Run(input),
+                    6 => Day6.Run(input),
                     _ => await new Failure<Day>(message: $"Currently there is no solution for Day {day}.", value: day)
                 });
             });
