@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 
 using JetBrains.Annotations;
 
@@ -29,39 +27,14 @@ namespace AdventOfCode.Common
         /// <param name="id">The id of the error</param>
         /// <param name="message">The error message</param>
         /// <param name="value">The value that caused the error</param>
+        /// <param name="nested">Any additional nested errors</param>
         public Failure(
-            [NotNull] string id,
-            [NotNull] string message,
-            [CanBeNull] object value = null)
-            : this(new Error(id, message, value))
+            [CanBeNull] string id = null,
+            [CanBeNull] string message = null,
+            [CanBeNull] object value = null,
+            [CanBeNull] Error[] nested = null)
+            : this(new Error(id, message, value, nested))
         { }
-
-        
-        //--------------------------------------------------
-        /// <summary>
-        /// Convert an error into a failure.
-        /// </summary>
-        [NotNull]
-        public static implicit operator Failure<TValue>([NotNull] Error error)
-            => new Failure<TValue>(error);
-        
-        
-        //--------------------------------------------------
-        /// <summary>
-        /// Add nested errors.
-        /// </summary>
-        [NotNull]
-        public Failure<TValue> this[[NotNull, ItemCanBeNull] params Error[] errors]
-            => new Failure<TValue>(this.Error[errors]);
-        
-        
-        //--------------------------------------------------
-        /// <summary>
-        /// Add nested errors.
-        /// </summary>
-        [NotNull]
-        public Failure<TValue> this[[NotNull, ItemCanBeNull] IEnumerable<Error> errors]
-            => new Failure<TValue>(this.Error[errors.ToArray()]);
         
         
         //--------------------------------------------------

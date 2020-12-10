@@ -17,6 +17,7 @@ namespace AdventOfCode.Test
                 new Day("--- Day 4: Passport Processing ---", "2", "2"),
                 await Day4.Run(await "..\\..\\..\\Input\\Day4.txt".ReadAllLines()));
 
+
         [Test]
         public static void TestByr()
         {
@@ -25,8 +26,8 @@ namespace AdventOfCode.Test
                 Day4.ValidateBirthYear(new Dictionary<string, string> {["byr"] = "2002"}));
             
             Assert.AreEqual(
-                new Failure<int>("byr", "Birth year must be at most 2002.", 2003),
-                Day4.ValidateBirthYear(new Dictionary<string, string>{ ["byr"] = "2003" }));
+                "Birth year must be at most 2002.",
+                Day4.ValidateBirthYear(new Dictionary<string, string>{ ["byr"] = "2003" }).ToString());
         }
         
         
@@ -42,12 +43,12 @@ namespace AdventOfCode.Test
                 Day4.ValidateHeight(new Dictionary<string, string> {["hgt"] = "190cm"}));
             
             Assert.AreEqual(
-                new Failure<int>("hgt", "Height must be at most 76in.", "190in"),
-                Day4.ValidateHeight(new Dictionary<string, string>{ ["hgt"] = "190in" }));
+                "Height must be at most 76in.",
+                Day4.ValidateHeight(new Dictionary<string, string>{ ["hgt"] = "190in" }).ToString());
             
             Assert.AreEqual(
-                new Failure<int>("hgt", "Expecting height to be a number and followed by either 'cm' or 'in'.", "190"),
-                Day4.ValidateHeight(new Dictionary<string, string>{ ["hgt"] = "190" }));
+                "Expecting height to be a number and followed by either 'cm' or 'in'.",
+                Day4.ValidateHeight(new Dictionary<string, string>{ ["hgt"] = "190" }).ToString());
         }
         
         
@@ -59,12 +60,12 @@ namespace AdventOfCode.Test
                 Day4.ValidateHairColor(new Dictionary<string, string> {["hcl"] = "#123abc"}));
             
             Assert.AreEqual(
-                new Failure<string>("hcl", "Expecting hair color to be a '#' followed by 6 characters 0-9 or a-f.", "#123abz"),
-                Day4.ValidateHairColor(new Dictionary<string, string>{ ["hcl"] = "#123abz" }));
+                "Expecting hair color to be a '#' followed by 6 characters 0-9 or a-f.",
+                Day4.ValidateHairColor(new Dictionary<string, string>{ ["hcl"] = "#123abz" }).ToString());
             
             Assert.AreEqual(
-                new Failure<string>("hcl", "Expecting hair color to be a '#' followed by 6 characters 0-9 or a-f.", "123abc"),
-                Day4.ValidateHairColor(new Dictionary<string, string>{ ["hcl"] = "123abc" }));
+                "Expecting hair color to be a '#' followed by 6 characters 0-9 or a-f.",
+                Day4.ValidateHairColor(new Dictionary<string, string>{ ["hcl"] = "123abc" }).ToString());
         }
         
         
@@ -76,8 +77,8 @@ namespace AdventOfCode.Test
                 Day4.ValidateEyeColor(new Dictionary<string, string> {["ecl"] = "brn"}));
             
             Assert.AreEqual(
-                new Failure<string>("ecl", "Unknown eye color 'wat'.", "wat"),
-                Day4.ValidateEyeColor(new Dictionary<string, string>{ ["ecl"] = "wat" }));
+                "Unknown eye color 'wat'.",
+                Day4.ValidateEyeColor(new Dictionary<string, string>{ ["ecl"] = "wat" }).ToString());
         }
         
         
@@ -89,8 +90,8 @@ namespace AdventOfCode.Test
                 Day4.ValidatePassportId(new Dictionary<string, string> {["pid"] = "000000001"}));
             
             Assert.AreEqual(
-                new Failure<string>("pid", "Expecting passport id a 9 digit long number.", "0123456789"),
-                Day4.ValidatePassportId(new Dictionary<string, string>{ ["pid"] = "0123456789" }));
+                "Expecting passport id a 9 digit long number.",
+                Day4.ValidatePassportId(new Dictionary<string, string>{ ["pid"] = "0123456789" }).ToString());
         }
         
         [Test]

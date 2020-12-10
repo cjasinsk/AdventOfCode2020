@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 using JetBrains.Annotations;
 
@@ -63,7 +62,7 @@ namespace AdventOfCode.Common
         //--------------------------------------------------
         /// <inheritdoc />
         public override int GetHashCode()
-            => EqualityComparer<TValue>.Default.GetHashCode(this.Value);
+            => this.Value.GetHashCode();
         
     }
     

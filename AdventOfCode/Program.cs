@@ -12,16 +12,7 @@ namespace AdventOfCode
      
         //--------------------------------------------------
         public static void Main([NotNull] string[] args)
-        {
-            var output = Program.Run(args) switch
-            {
-                Success<Day> success => success.ToString(),
-                Failure<Day> failure => new Error("AdventOfCode", "An error occurred")[failure.Error].ToString(),
-                _ => throw new InvalidOperationException()
-            };
-            
-            Console.WriteLine(output);
-        }
+            => Console.WriteLine(Result.From("AdventOfCode", async () => await Program.Run(args)));
 
 
         //--------------------------------------------------
@@ -29,17 +20,28 @@ namespace AdventOfCode
         {
             if (args is null) { throw new ArgumentNullException(nameof(args)); }
 
-            await args.Validate("Args", (x => x.Length != 1, "Expecting at least 1 argument for the day; 1-25."));
-            await args.Validate("Args", (x => !int.TryParse(x[0], out var d) || (d < 1 || d > 25), "Expecting the first argument to be a number between 1 and 25."));
-
-            var day = int.Parse(args[0]);
-            return await (day switch
+            var day = await Result.From("Args", async () =>
             {
-                1 => Day1.Run(await $"Input\\Day{day}.txt".ReadAllLines()),
-                2 => Day2.Run(await $"Input\\Day{day}.txt".ReadAllLines()),
-                3 => Day3.Run(await $"Input\\Day{day}.txt".ReadAllLines()),
-                4 => Day4.Run(await $"Input\\Day{day}.txt".ReadAllLines()),
-                _ => throw new Error($"Day {day}", $"Currently there is no solution for Day {day}.")
+                var d = 0;
+                await args.Validate(x => x.Length != 1, "Expecting at least 1 argument for the day; 1-25.");
+                await args.Validate(x => !int.TryParse(x[0], out d) || (d < 1 || d > 25), "Expecting the first argument to be a number between 1 and 25.");
+                return d;
+            });
+
+            return await Result.From($"Day {day}", async () =>
+            {
+                var input = await Result.From("ReadAllLines", async () => await
+                    $"Input\\Day{day}.txt".ReadAllLines());
+                
+                return await (day switch
+                {
+                    1 => Day1.Run(input),
+                    2 => Day2.Run(input),
+                    3 => Day3.Run(input),
+                    4 => Day4.Run(input),
+                    5 => Day5.Run(input),
+                    _ => await new Failure<Day>(message: $"Currently there is no solution for Day {day}.", value: day)
+                });
             });
         }
     }

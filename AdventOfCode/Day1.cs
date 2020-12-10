@@ -15,13 +15,13 @@ namespace AdventOfCode
         //--------------------------------------------------
         public static async Result<Day> Run([NotNull] IEnumerable<string> input)
         {
-            var parsed = await Day1.ParseInput(input);
+            var parsed = await ("ParseInput", Day1.ParseInput(input));
 
             return new Day(
                 "--- Day 1: Report Repair ---",
-                await Validate.All("Day 1", "Parts error",
-                    Day1.RunPartA(parsed),
-                    Day1.RunPartB(parsed)));
+                await Result.From(
+                    ("PartA", Day1.RunPartA(parsed)),
+                    ("PartB", Day1.RunPartB(parsed))));
         }
 
 
@@ -30,14 +30,15 @@ namespace AdventOfCode
         /// Convert input strings to decimal
         /// </summary>
         [NotNull] 
-        private static Result<decimal[]> ParseInput([NotNull] IEnumerable<string> input)
+        private static async Result<decimal[]> ParseInput([NotNull] IEnumerable<string> input)
         {
             if (input is null) { throw new ArgumentNullException(nameof(input)); }
 
-            return input.Select((x, i) => !decimal.TryParse(x, out var value)
-                    ? new Error(i.ToString(), $"Unable to parse {x} into a number", x)
-                    : value.Success())
-                .Flatten("Day 1", "Unable to parse input into numbers.");
+            return (await input.Select<string, Result<decimal>>(async (x, i) =>
+                !decimal.TryParse(x, out var d)
+                    ? await new Failure<decimal>($"{i}", $"Unable to parse {x} into a number")
+                    : d
+            )).ToArray();
         }
 
 
@@ -47,10 +48,10 @@ namespace AdventOfCode
         /// them together.
         /// </summary>
         [NotNull]
-        private static Result<string> RunPartA([NotNull] decimal[] input)
+        private static async Result<string> RunPartA([NotNull] decimal[] input)
         {
             if (input is null) { throw new ArgumentNullException(nameof(input)); }
-            if (input.Length < 2) { return new Error("PartA", "Expecting at least 2 numbers of input.", input); }
+            if (input.Length < 2) { await new Failure<string>(message: "Expecting at least 2 numbers of input.", value: input); }
             
             foreach (var x in input)
             {
@@ -62,7 +63,7 @@ namespace AdventOfCode
                     }
                 }
             }
-            return new Error("PartA", "No two numbers add to 2020.", input);
+            return await new Failure<string>(message: "No two numbers add to 2020.", value: input);
         }
         
         
@@ -72,10 +73,10 @@ namespace AdventOfCode
         /// them together.
         /// </summary>
         [NotNull]
-        private static Result<string> RunPartB([NotNull] decimal[] input)
+        private static async Result<string> RunPartB([NotNull] decimal[] input)
         {
             if (input is null) { throw new ArgumentNullException(nameof(input)); }
-            if (input.Length < 3) { return new Error("PartB", "Expecting at least 3 numbers of input.", input); }
+            if (input.Length < 3) { await new Failure<string>(message: "Expecting at least 3 numbers of input.", value: input); }
             
             foreach (var x in input)
             {
@@ -90,7 +91,7 @@ namespace AdventOfCode
                     }
                 }
             }
-            return new Error("PartB", "No three numbers add to 2020.", input);
+            return await new Failure<string>(message: "No three numbers add to 2020.", value: input);
         }
         
     }

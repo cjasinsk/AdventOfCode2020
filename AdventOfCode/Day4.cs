@@ -19,13 +19,13 @@ namespace AdventOfCode
         [NotNull]
         public static async Result<Day> Run([NotNull] string[] input)
         {
-            var parsed = await Day4.ParseInput(input);
-            
+            var parsed = await ("ParseInput", Day4.ParseInput(input));
+
             return new Day(
                 "--- Day 4: Passport Processing ---",
-                await Validate.All("Day 4", "Parts error",
-                    Day4.RunPartA(parsed),
-                    Day4.RunPartB(parsed)));
+                await Result.From(
+                    ("PartA", Day4.RunPartA(parsed)),
+                    ("PartB", Day4.RunPartB(parsed))));
         }
 
 
@@ -51,8 +51,8 @@ namespace AdventOfCode
                         var kvp = pair.Split(':');
                         if (kvp.Length != 2)
                         {
-                            // throw is easy to short-circuit in the async Result
-                            throw new Error("Day 4", $"Unable to parse '{pair}' into key/value pair on line {i}", input);
+                            await new Failure<IDictionary<string, string>>(message: $"Unable to parse '{pair}' into key/value pair on line {i}", value: input);
+                            continue;
                         }
 
                         rawPassport[kvp[0]] = kvp[1];
@@ -70,11 +70,9 @@ namespace AdventOfCode
         {
             if (rawPassports is null) { throw new ArgumentNullException(nameof(rawPassports)); }
 
-            var counter = 0;
-            Console.WriteLine(rawPassports.Length);
             return rawPassports.Aggregate(0, (total, rawPassport) =>
             {
-                var result = rawPassport.Validate($"PartA ({counter++})",
+                var result = rawPassport.Validate(
                     (x => !x.ContainsKeyAndValue("byr"), "Expecting 'byr' (Birth Year)"),
                     (x => !x.ContainsKeyAndValue("iyr"), "Expecting 'iyr' (Issue Year)"),
                     (x => !x.ContainsKeyAndValue("eyr"), "Expecting 'eyr' (Expiration Year)"),
@@ -96,40 +94,25 @@ namespace AdventOfCode
         {
             if (rawPassports is null) { throw new ArgumentNullException(nameof(rawPassports)); }
 
-            var counter = 0;
-            Console.WriteLine(rawPassports.Length);
-            return rawPassports.Aggregate(0, (total, rawPassport) =>
-            {
-                var result = Validate.All(
-                    $"PartB ({counter++})",
-                    "Validate passport",
-                    Day4.ValidateBirthYear(rawPassport),
-                    Day4.ValidateIssueYear(rawPassport),
-                    Day4.ValidateExpirationYear(rawPassport),
-                    Day4.ValidateHeight(rawPassport),
-                    Day4.ValidateHairColor(rawPassport),
-                    Day4.ValidateEyeColor(rawPassport),
-                    Day4.ValidatePassportId(rawPassport));
-
-                return result is Success<(int, int, int, int, string, string, string)>
-                    ? total + 1
-                    : total;
-            }).ToString();
+            return rawPassports.Aggregate(0, (total, rawPassport) 
+                    => Passport.From(rawPassport) is Success<Passport> 
+                        ? total + 1 
+                        : total)
+                .ToString();
         }
         
         
         //--------------------------------------------------
         [NotNull]
-        public static Result<int> ValidateBirthYear([NotNull] IDictionary<string, string> passport)
+        public static async Result<int> ValidateBirthYear([NotNull] IDictionary<string, string> passport)
         {
             if (passport is null) { throw new ArgumentNullException(nameof(passport)); }
-            
-            // sequential
-            if (!passport.ContainsKeyAndValue("byr")) { return new Error("byr", "Expecting 'byr' (Birth Year) to exist.", passport); }
-            if (passport["byr"].Length != 4 || !int.TryParse(passport["byr"], out var byr)) { return new Error("byr", "Birth year must be a 4 digit year.", passport["byr"]); }
-                
-            // parallel
-            return byr.Validate("byr",
+
+            var byr = 0;
+            await passport.Validate(x => !x.ContainsKeyAndValue("byr"), "Expecting 'byr' (Birth Year) to exist.");
+            await passport.Validate(x => x["byr"].Length != 4 || !int.TryParse(x["byr"], out byr), "Birth year must be a 4 digit year.");
+
+            return await byr.Validate(
                 (x => x < 1920, "Birth year must be at least 1920."),
                 (x => x > 2002, "Birth year must be at most 2002."));
         }
@@ -137,16 +120,15 @@ namespace AdventOfCode
         
         //--------------------------------------------------
         [NotNull]
-        public static Result<int> ValidateIssueYear([NotNull] IDictionary<string, string> passport)
+        public static async Result<int> ValidateIssueYear([NotNull] IDictionary<string, string> passport)
         {
             if (passport is null) { throw new ArgumentNullException(nameof(passport)); }
 
-            // sequential
-            if (!passport.ContainsKeyAndValue("iyr")) { return new Error("iyr", "Expecting 'iyr' (Issue Year) to exist.", passport); }
-            if (passport["iyr"].Length != 4 || !int.TryParse(passport["iyr"], out var iyr)) { return new Error("iyr", "Issue year must be a 4 digit year.", passport["iyr"]); }
+            var iyr = 0;
+            await passport.Validate(x => !x.ContainsKeyAndValue("iyr"), "Expecting 'iyr' (Issue Year) to exist.");
+            await passport.Validate(x => x["iyr"].Length != 4 || !int.TryParse(x["iyr"], out iyr), "Issue year must be a 4 digit year.");
                 
-            // parallel
-            return iyr.Validate("iyr",
+            return await iyr.Validate(
                 (x => x < 2010, "Issue year must be at least 2010."),
                 (x => x > 2020, "Issue year must be at most 2020."));
         }
@@ -154,16 +136,15 @@ namespace AdventOfCode
         
         //--------------------------------------------------
         [NotNull]
-        public static Result<int> ValidateExpirationYear([NotNull] IDictionary<string, string> passport)
+        public static async Result<int> ValidateExpirationYear([NotNull] IDictionary<string, string> passport)
         {
             if (passport is null) { throw new ArgumentNullException(nameof(passport)); }
 
-            // sequential
-            if (!passport.ContainsKeyAndValue("eyr")) { return new Error("eyr", "Expecting 'eyr' (Expiration Year) to exist.", passport); }
-            if (passport["eyr"].Length != 4 || !int.TryParse(passport["eyr"], out var eyr)) { return new Error("eyr", "Expiration year must be a 4 digit year.", passport["eyr"]); }
-                
-            // parallel
-            return eyr.Validate("eyr",
+            var eyr = 0;
+            await passport.Validate(x => !x.ContainsKeyAndValue("eyr"), "Expecting 'eyr' (Expiration Year) to exist.");
+            await passport.Validate(x => x["eyr"].Length != 4 || !int.TryParse(x["eyr"], out eyr), "Expiration year must be a 4 digit year.");
+
+            return await eyr.Validate(
                 (x => x < 2020, "Expiration year must be at least 2020."),
                 (x => x > 2030, "Expiration year must be at most 2030."));
         }
@@ -171,43 +152,39 @@ namespace AdventOfCode
         
         //--------------------------------------------------
         [NotNull]
-        public static Result<int> ValidateHeight([NotNull] IDictionary<string, string> passport)
+        public static async Result<int> ValidateHeight([NotNull] IDictionary<string, string> passport)
         {
             if (passport is null) { throw new ArgumentNullException(nameof(passport)); }
-
-            // sequential
-            if (!passport.ContainsKeyAndValue("hgt")) { return new Error("hgt", "Expecting 'hgt' (Height) to exist.", passport); }
+            await passport.Validate(x => !x.ContainsKeyAndValue("hgt"), "Expecting 'hgt' (Height) to exist.");
             
             var matches = Regex.Match(passport["hgt"], "^([0-9]*)(in|cm)$", RegexOptions.IgnoreCase);
-            if (matches.Groups.Count != 3) { return new Error("hgt", "Expecting height to be a number and followed by either 'cm' or 'in'.", passport["hgt"]); }
+            await matches.Validate(x => x.Groups.Count != 3, "Expecting height to be a number and followed by either 'cm' or 'in'.");
 
             var hgt = int.Parse(matches.Groups[1].Value);
             var unit = matches.Groups[2].Value;
 
-            // parallel
             return unit switch
             {
-                "cm" => hgt.Validate("hgt", 
+                "cm" => await hgt.Validate( 
                     (x => x < 150, "Height must be at least 150cm."),
                     (x => x > 193, "Height must be at most 193cm.")),
-                "in" => hgt.Validate("hgt", 
+                "in" => await hgt.Validate( 
                     (x => x < 59, "Height must be at least 59in."),
                     (x => x > 76, "Height must be at most 76in.")),
-                _ => new Error("hgt", $"Unknown unit '{unit}'.", unit)
+                _ => await new Failure<int>(message: $"Unknown unit '{unit}'.", value: unit)
             };
         }
         
         
         //--------------------------------------------------
         [NotNull]
-        public static Result<string> ValidateHairColor([NotNull] IDictionary<string, string> passport)
+        public static async Result<string> ValidateHairColor([NotNull] IDictionary<string, string> passport)
         {
             if (passport is null) { throw new ArgumentNullException(nameof(passport)); }
-            
-            if (!passport.ContainsKeyAndValue("hcl")) { return new Error("hcl", "Expecting 'hcl' (Hair Color) to exist.", passport); }
+            await passport.Validate(x => !x.ContainsKeyAndValue("hcl"), "Expecting 'hcl' (Hair Color) to exist.");
             
             var matches = Regex.Match(passport["hcl"], "^(#[0-9a-fA-F]{6})$", RegexOptions.IgnoreCase);
-            if (matches.Groups.Count != 2) { return new Error("hcl", "Expecting hair color to be a '#' followed by 6 characters 0-9 or a-f.", passport["hcl"]); }
+            await matches.Validate(x => x.Groups.Count != 2, "Expecting hair color to be a '#' followed by 6 characters 0-9 or a-f.");
 
             return matches.Groups[1].Value;
         }
@@ -215,40 +192,51 @@ namespace AdventOfCode
         
         //--------------------------------------------------
         [NotNull]
-        public static Result<string> ValidateEyeColor([NotNull] IDictionary<string, string> passport)
+        public static async Result<string> ValidateEyeColor([NotNull] IDictionary<string, string> passport)
         {
             if (passport is null) { throw new ArgumentNullException(nameof(passport)); }
-
-            if (!passport.ContainsKeyAndValue("ecl")) { return new Error("ecl", "Expecting 'ecl' (Eye Color) to exist.", passport); }
+            await passport.Validate(x => !x.ContainsKeyAndValue("ecl"), "Expecting 'ecl' (Eye Color) to exist.");
 
             var ecl = passport["ecl"];
-            return ecl switch
-            {
-                "amb" => ecl,
-                "blu" => ecl,
-                "brn" => ecl,
-                "gry" => ecl,
-                "grn" => ecl,
-                "hzl" => ecl,
-                "oth" => ecl,
-                _ => new Error("ecl", $"Unknown eye color '{ecl}'.", ecl)
-            };
+            return await ecl.Validate(
+                x => !(new[] {"amb", "blu", "brn", "gry", "grn", "hzl", "oth"}.Contains(x)),
+                $"Unknown eye color '{ecl}'.");
         }
         
         
         //--------------------------------------------------
         [NotNull]
-        public static Result<string> ValidatePassportId([NotNull] IDictionary<string, string> passport)
+        public static async Result<string> ValidatePassportId([NotNull] IDictionary<string, string> passport)
         {
             if (passport is null) { throw new ArgumentNullException(nameof(passport)); }
-
-            if (!passport.ContainsKeyAndValue("pid")) { return new Error("pid", "Expecting 'pid' (Passport ID) to exist.", passport); }
+            await passport.Validate(x => !x.ContainsKeyAndValue("pid"), "Expecting 'pid' (Passport ID) to exist.");
 
             var matches = Regex.Match(passport["pid"], "^([0-9]{9})$", RegexOptions.IgnoreCase);
-            if (matches.Groups.Count != 2) { return new Error("pid", "Expecting passport id a 9 digit long number.", passport["pid"]); }
+            await matches.Validate(m => m.Groups.Count != 2, "Expecting passport id a 9 digit long number.");
 
             return matches.Groups[1].Value;
         }
+
+
+
+        private sealed class Passport
+        {
+            public static async Result<Passport> From([NotNull]IDictionary<string, string> rawPassport)
+                => new Passport(
+                    await Result.From(
+                        ("byr", Day4.ValidateBirthYear(rawPassport)),
+                        ("iyr", Day4.ValidateIssueYear(rawPassport)),
+                        ("eyr", Day4.ValidateExpirationYear(rawPassport)),
+                        ("hgt", Day4.ValidateHeight(rawPassport)),
+                        ("hcl", Day4.ValidateHairColor(rawPassport)),
+                        ("ecl", Day4.ValidateEyeColor(rawPassport)),
+                        ("pid", Day4.ValidatePassportId(rawPassport))));
+
+            private Passport((int byr, int iyr, int eyr, int hgt, string hcl, string ecl, string pid) _)
+            { }
+            
+        }
+        
     }
     
 }
