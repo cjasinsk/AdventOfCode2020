@@ -15,6 +15,8 @@ namespace AdventOfCode
         //--------------------------------------------------
         public static async Result<Day> Run([NotNull] IEnumerable<string> input)
         {
+            object o;
+            o.ToString();
             var parsed = await ("Parse Input", Day5.ParseInput(input));
             
             return new Day(
@@ -65,8 +67,8 @@ namespace AdventOfCode
             }
             throw new InvalidOperationException("Unable to find empty seat.");
         }
-        
-        
+
+
         
         //--------------------------------------------------
         public sealed class Ticket

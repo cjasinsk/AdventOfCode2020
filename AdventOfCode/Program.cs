@@ -23,8 +23,9 @@ namespace AdventOfCode
             var day = await Result.From("Args", async () =>
             {
                 var d = 0;
-                await args.Validate(x => x.Length != 1, "Expecting at least 1 argument for the day; 1-25.");
-                await args.Validate(x => !int.TryParse(x[0], out d) || (d < 1 || d > 25), "Expecting the first argument to be a number between 1 and 25.");
+                await args.Validate(
+                    (x => x.Length != 1, "Expecting at least 1 argument for the day; 1-25."),
+                    (x => !int.TryParse(x[0], out d) || (d < 1 || d > 25), "Expecting the first argument to be a number between 1 and 25."));
                 return d;
             });
 
